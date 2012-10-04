@@ -104,10 +104,8 @@ public class StreamingController {
 
         try {
 
-            DownloadInstructions downloadInstructions = new DownloadInstructions();
-            if (sinceDate != null) {
-                downloadInstructions.setSinceConditional(new IfModifiedSince(sinceDate));
-            }
+            DownloadInstructions downloadInstructions =
+                new DownloadInstructions().setSinceConditional(new IfModifiedSince(sinceDate));
 
             InputStream dataStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
 
