@@ -3,14 +3,21 @@ package nl.tweeenveertig.openstack.tutorial;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import nl.tweeenveertig.openstack.client.Account;
 import nl.tweeenveertig.openstack.client.Container;
 import nl.tweeenveertig.openstack.client.StoredObject;
+import nl.tweeenveertig.openstack.command.core.CommandException;
+import nl.tweeenveertig.openstack.headers.object.conditional.IfModifiedSince;
+import nl.tweeenveertig.openstack.model.DownloadInstructions;
+import org.apache.http.HttpStatus;
+import org.apache.http.impl.cookie.DateParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
@@ -76,47 +83,48 @@ public class StreamingController {
      * @throws IOException when streaming the content fails
      */
     @RequestMapping("/download/{objectName:.+}")
-    public void downloadContent(@PathVariable String objectName, HttpServletResponse response) throws IOException {
+    public void downloadContent(@PathVariable String objectName, HttpServletRequest request, HttpServletResponse response) throws IOException, DateParseException {
 
-        // Get the object to download.
+        String sinceDate = request.getHeader("If-Modified-Since");
 
         Container container = getTutorialContainer();
         StoredObject storedObject = container.getObject(objectName);
 
+        response.addHeader("Last-Modified", storedObject.getLastModified());
+        response.setContentType(storedObject.getContentType());
+
         if (storedObject.exists()) {
-
-            streamObject(storedObject, response);
+            streamObject(storedObject, response, sinceDate);
         } else {
-
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    private void streamObject(StoredObject storedObject, HttpServletResponse response) throws IOException {
+    private void streamObject(StoredObject storedObject, HttpServletResponse response, String sinceDate) throws IOException, DateParseException {
 
-        // Get the content type and the data stream.
-
-        String contentType = storedObject.getContentType();
-        if (contentType == null) {
-            contentType = DEFAULT_BINARY_CONTENT_TYPE;
-        }
-        InputStream dataStream = storedObject.downloadObjectAsInputStream();
-
-        // Stream the data.
-
-        OutputStream responseStream = null;
         try {
 
-            response.setContentType(contentType);
-            responseStream = response.getOutputStream();
-            FileCopyUtils.copy(dataStream, responseStream);
-        } finally {
-
-            if (responseStream != null) {
-
-                responseStream.close();
+            DownloadInstructions downloadInstructions = new DownloadInstructions();
+            if (sinceDate != null) {
+                downloadInstructions.setSinceConditional(new IfModifiedSince(sinceDate));
             }
+
+            InputStream dataStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
+
+            OutputStream responseStream = null;
+            try {
+                FileCopyUtils.copy(dataStream, response.getOutputStream());
+            } finally {
+                if (responseStream != null) { responseStream.close(); }
+            }
+
+        } catch (CommandException err) {
+            if (HttpStatus.SC_NOT_MODIFIED != err.getHttpStatusCode()) {
+                throw err;
+            }
+            response.setStatus(HttpStatus.SC_NOT_MODIFIED);
         }
+
     }
 
 }

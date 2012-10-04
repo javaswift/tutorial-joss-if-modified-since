@@ -43,7 +43,7 @@
         ...
     </p>
     <p>
-        <img src="${public_url}">
+        <%--<img src="${public_url}">--%>
     </p>
 </section>
 
