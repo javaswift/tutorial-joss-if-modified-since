@@ -50,10 +50,7 @@ public class ApplicationSetup {
 
     private void addInitialContent(Container container) throws IOException {
 
-        StoredObject object1 = container.getObject(StorageProvider.USE_CASE_1_OBJECT);
-        storageProvider.streamUpload(object1, getClass().getResourceAsStream(StorageProvider.USE_CASE_1_RESOURCE));
-
-        StoredObject object3s = container.getObject(StorageProvider.USE_CASE_3_SRC_OBJECT);
-        object1.copyObject(container, object3s);
+        StoredObject object = container.getObject(StorageProvider.USE_CASE_1_OBJECT);
+        object.uploadObject(getClass().getResourceAsStream(StorageProvider.USE_CASE_1_RESOURCE));
     }
 }

@@ -7,8 +7,11 @@ import java.util.ResourceBundle;
 
 import eu.medsea.mimeutil.MimeUtil;
 import nl.tweeenveertig.openstack.client.Account;
+import nl.tweeenveertig.openstack.client.Client;
 import nl.tweeenveertig.openstack.client.StoredObject;
 import nl.tweeenveertig.openstack.client.impl.ClientImpl;
+import nl.tweeenveertig.openstack.client.mock.ClientMock;
+import nl.tweeenveertig.openstack.client.mock.MockUserStore;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,23 +33,7 @@ public class StorageProvider {
     /**
      * The name of the stored object for use case 1.
      */
-    public static final String USE_CASE_1_OBJECT = "testObject1";
-    /**
-     * The name of the stored object for use case 2.
-     */
-    public static final String USE_CASE_2_OBJECT = "testObject2";
-    /**
-     * The name of the source object for use case 3.
-     */
-    public static final String USE_CASE_3_SRC_OBJECT = "testObject3-i";
-    /**
-     * The name of the first destination object for use case 3.
-     */
-    public static final String USE_CASE_3_DEST_OBJECT_1 = "testObject3-o1";
-    /**
-     * The name of the second destination object for use case 3.
-     */
-    public static final String USE_CASE_3_DEST_OBJECT_2 = "testObject3-o2";
+    public static final String USE_CASE_1_OBJECT = "test-object.png";
     /**
      * Buffer size for &quot;MIME magic&quot;, i.e. determining the actual MIME type of the content.
      */
@@ -78,34 +65,13 @@ public class StorageProvider {
             String username = credentials.getString("username");
             String password = credentials.getString("password");
             String auth_url = credentials.getString("auth_url");
-            account = new ClientImpl().authenticate(tenant, username, password, auth_url);
+//            account = new ClientImpl().authenticate(tenant, username, password, auth_url);
+            ClientMock client  = new ClientMock();
+            MockUserStore userStore = new MockUserStore();
+            userStore.addUser("test", "test");
+            client.setUsers(userStore);
+            account = client.authenticate(tenant, "test", "test", auth_url);
         }
         return account;
-    }
-
-    /**
-     * Stream a file to a {@code StoredObject}. Also sets the content type based upon the stream.
-     *
-     * @param storedObject the stored object to upload to
-     * @param stream       the data stream tp upload
-     */
-    public void streamUpload(StoredObject storedObject, InputStream stream) throws IOException {
-
-        // A content type can be determined from the first 32 bytes. Get them while ensuring the InputStream remains complete.
-
-        byte[] mimeMagicBuffer = new byte[MIME_MAGIC_BUFFER_SIZE];
-        PushbackInputStream pushbackInputStream = new PushbackInputStream(stream, MIME_MAGIC_BUFFER_SIZE);
-
-        int magicBytesRead = pushbackInputStream.read(mimeMagicBuffer);
-        pushbackInputStream.unread(mimeMagicBuffer, 0, magicBytesRead);
-
-        // Determine the MIME type.
-
-        String contentType = MimeUtil.getMostSpecificMimeType(MimeUtil.getMimeTypes(mimeMagicBuffer)).toString();
-
-        // Do the actual upload.
-
-        storedObject.uploadObject(pushbackInputStream);
-        storedObject.setContentType(contentType);
     }
 }
