@@ -60,6 +60,7 @@ public class StreamingController {
     public ModelAndView showIndexPage() {
 
         Container container = getTutorialContainer();
+        container.makePublic();
         StoredObject useCaseObject = container.getObject(StorageProvider.USE_CASE_1_OBJECT);
 
         Map<String, Object> model = new HashMap<String, Object>();

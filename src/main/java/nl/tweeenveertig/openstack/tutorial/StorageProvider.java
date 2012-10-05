@@ -65,12 +65,9 @@ public class StorageProvider {
             String username = credentials.getString("username");
             String password = credentials.getString("password");
             String auth_url = credentials.getString("auth_url");
-//            account = new ClientImpl().authenticate(tenant, username, password, auth_url);
-            ClientMock client  = new ClientMock();
-            MockUserStore userStore = new MockUserStore();
-            userStore.addUser("test", "test");
-            client.setUsers(userStore);
-            account = client.authenticate(tenant, "test", "test", auth_url);
+            account = new ClientImpl().authenticate(tenant, username, password, auth_url);
+//            ClientMock client  = new ClientMock().allowEveryone();
+//            account = client.authenticate(tenant, username, password, auth_url);
         }
         return account;
     }
