@@ -1,12 +1,12 @@
 package nl.tweeenveertig.openstack.tutorial;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -86,29 +86,36 @@ public class StreamingController {
     @RequestMapping("/download/{objectName:.+}")
     public void downloadContent(@PathVariable String objectName, HttpServletRequest request, HttpServletResponse response) throws IOException, DateParseException {
 
-        String sinceDate = request.getHeader("If-Modified-Since");
-
+        // Fetch the container and object so that metadata and object are accessible
         Container container = getTutorialContainer();
         StoredObject storedObject = container.getObject(objectName);
 
+        // This is a crucial statement that triggers the browser to send an If-Modified-Since
+        // with the next request
         response.addHeader("Last-Modified", storedObject.getLastModified());
         response.setContentType(storedObject.getContentType());
 
         if (storedObject.exists()) {
-            streamObject(storedObject, response, sinceDate);
+            // Get the object and send the If-Modified-Since object so it can be passed to the
+            // Object Store.
+            streamObject(storedObject, response, request.getHeader("If-Modified-Since"));
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
     private void streamObject(StoredObject storedObject, HttpServletResponse response, String sinceDate) throws IOException, DateParseException {
-
         try {
-
+            // Set up the download instructions with the If-Modified-Since header so that the object
+            // store can make a judgement call on whether to serve the content.
             DownloadInstructions downloadInstructions =
                 new DownloadInstructions().setSinceConditional(new IfModifiedSince(sinceDate));
-
             InputStream dataStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
+
+            // The image is changed here, so you can see the last modification date/time over
+            BufferedImage originalImage = ImageIO.read(dataStream);
+            BufferedImage watermarkedImage = ImageUtils.placeText(originalImage, storedObject.getLastModified());
+            dataStream = createInputStream(watermarkedImage);
 
             OutputStream responseStream = null;
             try {
@@ -116,14 +123,21 @@ public class StreamingController {
             } finally {
                 if (responseStream != null) { responseStream.close(); }
             }
-
         } catch (CommandException err) {
+
+            // This here is the meat of the matter -- when the Object Store reports back a 304,
+            // this status is also set on the HttpResponse object.
             if (HttpStatus.SC_NOT_MODIFIED != err.getHttpStatusCode()) {
                 throw err;
             }
             response.setStatus(HttpStatus.SC_NOT_MODIFIED);
         }
+    }
 
+    private InputStream createInputStream(BufferedImage image) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        return new ByteArrayInputStream(baos.toByteArray());
     }
 
 }
