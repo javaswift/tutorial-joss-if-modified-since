@@ -1,10 +1,7 @@
 Tutorial: JOSS If-Modified-Since
 ================================
 
-_UNDER CONSTRUCTION_
-
 This is a working project to demonstrate JOSS for demonstating natural If-Modified-Since when streaming objects through the application layer.
-
 
 To see this project in action:
 ------------------------------
