@@ -16,3 +16,9 @@ To see this project in action:
 4. Point your browser to [http://localhost:8081/](http://localhost:8081/)
 
 To see how you can do all this yourself, have a look at the class `nl.tweeenveertig.openstack.tutorial.StreamingController`.
+
+No Object Storage account?
+--------------------------
+Either get one at https://www.cloudvps.com/blog/cloudvps-object-store-beta-test-more-testers-welcome/
+
+Or, alternatively, change the authentication lines in StorageProvider to make use of the ClientMock. In this case you will not need an account and you can still see the basic concept at work.

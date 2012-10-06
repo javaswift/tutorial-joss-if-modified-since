@@ -115,6 +115,7 @@ public class StreamingController {
             // The image is changed here, so you can see the last modification date/time over
             BufferedImage originalImage = ImageIO.read(dataStream);
             BufferedImage watermarkedImage = ImageUtils.placeText(originalImage, storedObject.getLastModified());
+            dataStream.close();
             dataStream = createInputStream(watermarkedImage);
 
             OutputStream responseStream = null;
