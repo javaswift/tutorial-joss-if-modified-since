@@ -2,7 +2,6 @@ package nl.tweeenveertig.openstack.tutorial;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import nl.tweeenveertig.openstack.client.Account;
 import nl.tweeenveertig.openstack.client.Container;
 import nl.tweeenveertig.openstack.client.StoredObject;
-import nl.tweeenveertig.openstack.command.core.CommandException;
 import nl.tweeenveertig.openstack.command.core.NotModifiedException;
 import nl.tweeenveertig.openstack.headers.object.conditional.IfModifiedSince;
 import nl.tweeenveertig.openstack.model.DownloadInstructions;
@@ -33,19 +31,14 @@ import org.springframework.web.servlet.ModelAndView;
 public class StreamingController {
 
     /**
-     * Content type to use when none is given.
-     */
-    public static final String DEFAULT_BINARY_CONTENT_TYPE = "application/octet-stream";
-    /**
-     * The storage provider we'll use. This logs in and provides us with the logged in account.
-     */
+    * The storage provider we'll use. This logs in and provides us with the logged in account.
+    */
     private StorageProvider storageProvider;
 
     /**
-     * Create a streaming controller.
-     *
-     * @param storageProvider the storage provider to use
-     */
+    * Create a streaming controller.
+    * @param storageProvider the storage provider to use
+    */
     @Autowired
     public StreamingController(StorageProvider storageProvider) {
 
@@ -53,10 +46,9 @@ public class StreamingController {
     }
 
     /**
-     * Show the index page.
-     *
-     * @return a view for the index page
-     */
+    * Show the index page.
+    * @return a view for the index page
+    */
     @RequestMapping("/")
     public ModelAndView showIndexPage() {
 
@@ -72,7 +64,6 @@ public class StreamingController {
     }
 
     private Container getTutorialContainer() {
-
         Account account = storageProvider.getAccount();
         return account.getContainer(StorageProvider.TUTORIAL_CONTAINER);
     }
