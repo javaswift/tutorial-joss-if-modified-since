@@ -14,6 +14,7 @@ import nl.tweeenveertig.openstack.client.Account;
 import nl.tweeenveertig.openstack.client.Container;
 import nl.tweeenveertig.openstack.client.StoredObject;
 import nl.tweeenveertig.openstack.command.core.CommandException;
+import nl.tweeenveertig.openstack.command.core.NotModifiedException;
 import nl.tweeenveertig.openstack.headers.object.conditional.IfModifiedSince;
 import nl.tweeenveertig.openstack.model.DownloadInstructions;
 import org.apache.http.HttpStatus;
@@ -77,14 +78,12 @@ public class StreamingController {
     }
 
     /**
-     * Use case 1: stream content from storage to the browser. This method also helps for the other use cases.
-     *
-     * @param objectName the name of the object to download
-     * @param response   the response to send the data to
-     * @throws IOException when streaming the content fails
-     */
-
-    // ResourceBundle credentials = ResourceBundle.getBundle("credential
+    * Use case: show case the usage of If-Modified-Since
+    *
+    * @param objectName the name of the object to download
+    * @param response   the response to send the data to
+    * @throws IOException when streaming the content fails
+    */
     @RequestMapping("/download/{objectName:.+}")
     public void downloadContent(@PathVariable String objectName,
             HttpServletRequest request, HttpServletResponse response)
@@ -92,7 +91,7 @@ public class StreamingController {
 
         // Read the If-Modified-Since value from the HTTP request
         // and make sure the ObjectStore gets this
-        String ifModifiedSince = request.getHeader("If-Modified-Since");
+        Long ifModifiedSince = request.getDateHeader("If-Modified-Since");
 
         // Fetch the container and object so that metadata and
         // object are accessible
@@ -101,7 +100,7 @@ public class StreamingController {
 
         // This is a crucial statement that triggers the browser to
         // send an If-Modified-Since with the next request
-        response.addHeader("Last-Modified", storedObject.getLastModified());
+        response.setDateHeader("Last-Modified", storedObject.getLastModifiedAsDate().getTime());
         response.setContentType(storedObject.getContentType());
 
         // Get the object and send the If-Modified-Since object so
@@ -139,14 +138,7 @@ public class StreamingController {
                     responseStream.close();
                 }
             }
-        } catch (CommandException err) {
-            // This here is the meat of the matter -- when
-            // the Object Store reports back a 304, this status
-            // is also set on the HttpResponse object.
-            if (HttpStatus.SC_NOT_MODIFIED !=
-                    err.getHttpStatusCode()) {
-                throw err;
-            }
+        } catch (NotModifiedException err) {
             response.setStatus(HttpStatus.SC_NOT_MODIFIED);
         }
     }
