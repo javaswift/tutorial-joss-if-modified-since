@@ -83,52 +83,68 @@ public class StreamingController {
      * @param response   the response to send the data to
      * @throws IOException when streaming the content fails
      */
-    @RequestMapping("/download/{objectName:.+}")
-    public void downloadContent(@PathVariable String objectName, HttpServletRequest request, HttpServletResponse response) throws IOException, DateParseException {
 
-        // Fetch the container and object so that metadata and object are accessible
+    // ResourceBundle credentials = ResourceBundle.getBundle("credential
+    @RequestMapping("/download/{objectName:.+}")
+    public void downloadContent(@PathVariable String objectName,
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException, DateParseException {
+
+        // Read the If-Modified-Since value from the HTTP request
+        // and make sure the ObjectStore gets this
+        String ifModifiedSince = request.getHeader("If-Modified-Since");
+
+        // Fetch the container and object so that metadata and
+        // object are accessible
         Container container = getTutorialContainer();
         StoredObject storedObject = container.getObject(objectName);
 
-        // This is a crucial statement that triggers the browser to send an If-Modified-Since
-        // with the next request
+        // This is a crucial statement that triggers the browser to
+        // send an If-Modified-Since with the next request
         response.addHeader("Last-Modified", storedObject.getLastModified());
         response.setContentType(storedObject.getContentType());
 
-        if (storedObject.exists()) {
-            // Get the object and send the If-Modified-Since object so it can be passed to the
-            // Object Store.
-            streamObject(storedObject, response, request.getHeader("If-Modified-Since"));
-        } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        }
-    }
-
-    private void streamObject(StoredObject storedObject, HttpServletResponse response, String sinceDate) throws IOException, DateParseException {
+        // Get the object and send the If-Modified-Since object so
+        // it can be passed to the Object Store.
         try {
-            // Set up the download instructions with the If-Modified-Since header so that the object
-            // store can make a judgement call on whether to serve the content.
+            // Set up the download instructions with the
+            // If-Modified-Since header so that the object
+            // store can make a judgement call on whether
+            // to serve the content.
             DownloadInstructions downloadInstructions =
-                new DownloadInstructions().setSinceConditional(new IfModifiedSince(sinceDate));
-            InputStream dataStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
+                new DownloadInstructions()
+                    .setSinceConditional(
+                        new IfModifiedSince(ifModifiedSince));
+            InputStream dataStream =
+                    storedObject.downloadObjectAsInputStream(
+                        downloadInstructions);
 
-            // The image is changed here, so you can see the last modification date/time over
+            // The image is changed here, so you can see the last
+            // modification date/time over the image. YOU PROBABLY
+            // DON'T NEED THIS
             BufferedImage originalImage = ImageIO.read(dataStream);
-            BufferedImage watermarkedImage = ImageUtils.placeText(originalImage, storedObject.getLastModified());
+            BufferedImage watermarkedImage =
+                    ImageUtils.placeText(originalImage,
+                            storedObject.getLastModified());
             dataStream.close();
             dataStream = createInputStream(watermarkedImage);
 
             OutputStream responseStream = null;
             try {
-                FileCopyUtils.copy(dataStream, response.getOutputStream());
+                // Copy the stream to the HTTP response
+                FileCopyUtils.copy(dataStream,
+                        response.getOutputStream());
             } finally {
-                if (responseStream != null) { responseStream.close(); }
+                if (responseStream != null) {
+                    responseStream.close();
+                }
             }
         } catch (CommandException err) {
-
-            // This here is the meat of the matter -- when the Object Store reports back a 304,
-            // this status is also set on the HttpResponse object.
-            if (HttpStatus.SC_NOT_MODIFIED != err.getHttpStatusCode()) {
+            // This here is the meat of the matter -- when
+            // the Object Store reports back a 304, this status
+            // is also set on the HttpResponse object.
+            if (HttpStatus.SC_NOT_MODIFIED !=
+                    err.getHttpStatusCode()) {
                 throw err;
             }
             response.setStatus(HttpStatus.SC_NOT_MODIFIED);
