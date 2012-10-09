@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import nl.tweeenveertig.openstack.client.Account;
 import nl.tweeenveertig.openstack.client.Container;
 import nl.tweeenveertig.openstack.client.StoredObject;
-import nl.tweeenveertig.openstack.command.core.NotModifiedException;
+import nl.tweeenveertig.openstack.exception.NotModifiedException;
 import nl.tweeenveertig.openstack.headers.object.conditional.IfModifiedSince;
 import nl.tweeenveertig.openstack.model.DownloadInstructions;
 import org.apache.http.HttpStatus;
