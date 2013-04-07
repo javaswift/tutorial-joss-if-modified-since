@@ -1,4 +1,4 @@
-package nl.tweeenveertig.openstack.tutorial;
+package org.javaswift.joss.tutorial;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -9,14 +9,14 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import nl.tweeenveertig.openstack.client.Account;
-import nl.tweeenveertig.openstack.client.Container;
-import nl.tweeenveertig.openstack.client.StoredObject;
-import nl.tweeenveertig.openstack.exception.NotModifiedException;
-import nl.tweeenveertig.openstack.headers.object.conditional.IfModifiedSince;
-import nl.tweeenveertig.openstack.model.DownloadInstructions;
 import org.apache.http.HttpStatus;
 import org.apache.http.impl.cookie.DateParseException;
+import org.javaswift.joss.exception.NotModifiedException;
+import org.javaswift.joss.headers.object.conditional.IfModifiedSince;
+import org.javaswift.joss.instructions.DownloadInstructions;
+import org.javaswift.joss.model.Account;
+import org.javaswift.joss.model.Container;
+import org.javaswift.joss.model.StoredObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;

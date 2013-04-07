@@ -1,4 +1,4 @@
-package nl.tweeenveertig.openstack.tutorial;
+package org.javaswift.joss.tutorial;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

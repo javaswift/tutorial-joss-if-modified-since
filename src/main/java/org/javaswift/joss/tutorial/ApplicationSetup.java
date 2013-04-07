@@ -1,12 +1,12 @@
-package nl.tweeenveertig.openstack.tutorial;
+package org.javaswift.joss.tutorial;
 
 import java.io.IOException;
 
 import javax.annotation.PostConstruct;
 
-import nl.tweeenveertig.openstack.client.Account;
-import nl.tweeenveertig.openstack.client.Container;
-import nl.tweeenveertig.openstack.client.StoredObject;
+import org.javaswift.joss.model.Account;
+import org.javaswift.joss.model.Container;
+import org.javaswift.joss.model.StoredObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class ApplicationSetup {
 
     private void emptyContainer(Container container) {
 
-        for (StoredObject storedObject : container.listObjects()) {
+        for (StoredObject storedObject : container.list()) {
             storedObject.delete();
         }
     }
