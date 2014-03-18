@@ -5,10 +5,12 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import eu.medsea.mimeutil.MimeUtil;
 import org.apache.http.HttpStatus;
 import org.apache.http.impl.cookie.DateParseException;
 import org.javaswift.joss.exception.NotModifiedException;
@@ -31,19 +33,57 @@ import org.springframework.web.servlet.ModelAndView;
 public class StreamingController {
 
     /**
-    * The storage provider we'll use. This logs in and provides us with the logged in account.
-    */
-    private StorageProvider storageProvider;
+     * The name of the container we'll use for this tutorial.
+     */
+    public static final String TUTORIAL_CONTAINER = "tutorial-joss-streaming";
+    /**
+     * The name of the resource to upload for use case 1.
+     */
+    public static final String USE_CASE_1_RESOURCE = "/Cloud-Computing.jpg";
+    /**
+     * The name of the stored object for use case 1.
+     */
+    public static final String USE_CASE_1_OBJECT = "test-object.png";
 
     /**
     * Create a streaming controller.
-    * @param storageProvider the storage provider to use
     */
-    @Autowired
-    public StreamingController(StorageProvider storageProvider) {
-
-        this.storageProvider = storageProvider;
+    public StreamingController() {
+        MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
     }
+
+    @Autowired
+    Account account;
+
+    @PostConstruct
+    public void initializeStorage() throws IOException {
+
+        Container container = account.getContainer(TUTORIAL_CONTAINER);
+        if (container.exists()) {
+            emptyContainer(container);
+        } else {
+            container.create();
+        }
+        if (container.isPublic()) {
+            container.makePrivate();
+        }
+
+        addInitialContent(container);
+    }
+
+    private void emptyContainer(Container container) {
+
+        for (StoredObject storedObject : container.list()) {
+            storedObject.delete();
+        }
+    }
+
+    private void addInitialContent(Container container) throws IOException {
+
+        StoredObject object = container.getObject(USE_CASE_1_OBJECT);
+        object.uploadObject(getClass().getResourceAsStream(USE_CASE_1_RESOURCE));
+    }
+
 
     /**
     * Show the index page.
@@ -54,7 +94,7 @@ public class StreamingController {
 
         Container container = getTutorialContainer();
         container.makePublic();
-        StoredObject useCaseObject = container.getObject(StorageProvider.USE_CASE_1_OBJECT);
+        StoredObject useCaseObject = container.getObject(USE_CASE_1_OBJECT);
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("public_url", useCaseObject.getPublicURL());
@@ -64,8 +104,7 @@ public class StreamingController {
     }
 
     private Container getTutorialContainer() {
-        Account account = storageProvider.getAccount();
-        return account.getContainer(StorageProvider.TUTORIAL_CONTAINER);
+        return account.getContainer(TUTORIAL_CONTAINER);
     }
 
     /**

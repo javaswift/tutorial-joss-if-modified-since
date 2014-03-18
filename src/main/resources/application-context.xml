@@ -22,4 +22,21 @@
         <!-- Maximum file size in bytes; 12582912 = 12*1024^2 = 12Mb -->
         <property name="maxUploadSize" value="12582912"/>
     </bean>
+
+    <bean id="cloudConfig" class="org.javaswift.joss.client.factory.AccountConfig">
+        <property name="tenantName" value="tenantName"/> <!-- optional -->
+        <property name="tenantId" value="tenantId"/> <!-- optional -->
+        <property name="username" value="username"/>
+        <property name="password" value="password"/>
+        <property name="authUrl" value="http://url.where.you.authenticate"/>
+        <property name="authenticationMethod" value="BASIC"/>
+        <property name="mock" value="true"/>
+    </bean>
+
+    <bean id="cloudFactory" class="org.javaswift.joss.client.factory.AccountFactory">
+        <constructor-arg ref="cloudConfig" />
+    </bean>
+
+    <bean id="account" factory-bean="cloudFactory" factory-method="createAccount" />
+
 </beans>

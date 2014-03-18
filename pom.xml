@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.javaswift</groupId>
             <artifactId>joss</artifactId>
-            <version>0.8.2</version>
+            <version>0.9.4</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -115,56 +115,30 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>8.1.0.v20120127</version>
-                <configuration>
-                    <useTestScope>true</useTestScope>
-                    <webAppSourceDirectory>${project.basedir}/src/main/webapp</webAppSourceDirectory>
-                    <webAppConfig>
-                        <jettyEnvXml>${jetty.conf.dir}/jetty-env.xml</jettyEnvXml>
-                    </webAppConfig>
-                    <connectors>
-                        <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                            <port>${jetty.port.http}</port>
-                            <maxIdleTime>60000</maxIdleTime>
-                        </connector>
-                    </connectors>
-                    <stopKey>stop</stopKey>
-                    <stopPort>${jetty.port.stop}</stopPort>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>start-jetty</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
+    <profiles>
+        <profile>
+            <id>tomcat</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <tomcat.port>8080</tomcat.port>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.tomcat.maven</groupId>
+                        <artifactId>tomcat7-maven-plugin</artifactId>
+                        <version>2.2</version>
                         <configuration>
-                            <scanIntervalSeconds>0</scanIntervalSeconds>
-                            <daemon>true</daemon>
+                            <port>${tomcat.port}</port>
+                            <path>/</path>
+                            <useTestClasspath>true</useTestClasspath>
                         </configuration>
-                    </execution>
-                    <execution>
-                        <id>stop-jetty</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <!-- Any SLF4J implementation on the classpath causes Jetty to use SLF4j. -->
-                    <dependency>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-jdk14</artifactId>
-                        <version>${org.slf4j.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-    </build>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
